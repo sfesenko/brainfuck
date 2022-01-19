@@ -8,8 +8,8 @@
 :- import_module list, string, char, array, int, uint8.
 
 :- type opcode
-  ---> nop
-    ; inc
+  --->
+      inc
     ; dec
     ; forth
     ; back
@@ -53,23 +53,28 @@ translate([Char | TailSource], SourceRest, CodeIn, CodeOut) :-
 :- type tape
   ---> tape(pos :: int, cells :: array(uint8)).
 
-
 :- func current(tape) = uint8.
-current(Tape) = array.lookup(Tape^cells, Tape^pos).
+current(Tape) = Tape^cells ^ unsafe_elem(Tape^pos).
+
+:- func move_pos(tape, int) = tape is det.
+move_pos(Tape, Delta) =
+  Tape^pos := Tape^pos + Delta.
+
 
 :- func new_tape = tape.
-new_tape = tape(0, array.init(8192 * 1024, 0u8)).
+new_tape = tape(0, array.init(16384, 0u8)).
 
 :- pred run_code(opcode::in, tape::in, tape::out, io::di, io::uo) is det.
 
-run_code(forth, Tape, (Tape^pos := Tape^pos + 1), !IO).
-run_code(back, Tape, (Tape^pos := Tape^pos - 1), !IO).
+run_code(forth, Tape, move_pos(Tape, 1), !IO).
+run_code(back, Tape, move_pos(Tape, -1), !IO).
 
 run_code(inc, Tape, NewTape, !IO) :-
-  V = current(Tape),
-  NewTape = (Tape^cells := array.set(Tape^cells, Tape^pos, V + 1u8)).
+  NewTape = Tape^cells ^ unsafe_elem(Tape^pos) := current(Tape) + 1u8.
 
-run_code(dec, Tape, (Tape^cells := array.set(Tape^cells, Tape^pos, current(Tape) - 1u8)), !IO).
+run_code(dec, Tape, NewTape, !IO) :-
+  NewTape = Tape^cells ^ unsafe_elem(Tape^pos) := current(Tape) - 1u8.
+
 
 run_code(write, Tape, Tape, !IO) :-
     V = current(Tape),
@@ -84,23 +89,18 @@ run_code(write, Tape, Tape, !IO) :-
 run_code(loop(CodeLoop), Tape, NewTape, !IO) :-
   run_loop(CodeLoop, Tape, NewTape, !IO).
 
-
-run_code(nop, Tape, Tape, !IO).
-
 run_code(read, Tape, TapeOut, !IO) :-
   io.read_char(ResIO, !IO),
   (
     ResIO = ok(Char),
     V = uint8.det_from_int(char.to_int(Char)),
-    TapeOut = (Tape^cells := array.set(Tape^cells, Tape^pos, V))
+    TapeOut = Tape^cells ^ unsafe_elem(Tape^pos) := V
     ;
     ResIO = eof,
     TapeOut = Tape
     ;
     ResIO = error(Error),
-    io.print("Error: ", !IO),
-    io.write_string(error_message(Error), !IO),
-    io.nl(!IO),
+    io.format("Error: %s\n", [s(error_message(Error))], !IO),
     TapeOut = Tape
   ).
 
@@ -128,9 +128,7 @@ run_program(Lines, !IO) :-
 
 :- pred show_error(io.error::in, io::di, io::uo) is det.
 show_error(Error, !IO) :-
-  print("Error! ", !IO),
-  io.write_string(error_message(Error), !IO),
-  io.nl(!IO),
+  io.format("Error: %s\n", [s(error_message(Error))], !IO),
   io.set_exit_status(1, !IO).
 
 
