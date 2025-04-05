@@ -1,0 +1,34 @@
+{
+  "packages": {
+    "linux-x64": [
+      {
+        "name": "base",
+        "version": "3.0.0"
+      },
+      {
+        "name": "base-clm",
+        "version": "1.6.0"
+      },
+      {
+        "name": "base-code-generator",
+        "version": "2.4.0"
+      },
+      {
+        "name": "base-compiler",
+        "version": "4.1.0"
+      },
+      {
+        "name": "base-lib",
+        "version": "2.15.0"
+      },
+      {
+        "name": "base-rts",
+        "version": "3.0.3"
+      },
+      {
+        "name": "base-stdenv",
+        "version": "2.1.1"
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+bin/
+nitrile-packages/
+**/Clean System Files/*
+
+*.b
+

@@ -1,0 +1,29 @@
+format_version: 0.4.4
+name: brainfuck
+type: Application
+version: 0.1.0
+
+build:
+  app:
+    script:
+      - clm:
+          main: Main
+          target: bin/bf
+          strip: true
+          print_time: true
+          print_result: false
+          print_constructors: true
+          heap: 8M
+          stack: 8M
+          
+          fusion: PlainFusion
+          check_indices: false
+          # profiling:  CallgraphProfiling
+          partial_functions: Warning
+          # garbage_collector: CopyingCollector
+
+dependencies:
+  base: ^3.0
+
+src:
+  - src
